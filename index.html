@@ -1,1 +1,1214 @@
+<!DOCTYPE html>
+<!--Knight Puzzle by M1735P-->
+<!--Aim: Get the knight to -->
+<!--the finish without     -->
+<!--moving on dark squares.-->
+<!--Not Finished           -->
+<html>
 
+<head id="head">
+    <title>The Knight Puzzle</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/images/fav.png">
+    <style>
+        /* #7df */
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+        }
+
+        body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+        }
+
+        body.dark-mode {
+            background-color: #000;
+        }
+
+        .big-text {
+            font-family: Rockwell, Georgia, 'Times New Roman', Times, serif;
+            font-size: 24pt;
+            font-weight: 500;
+        }
+
+        body.dark-mode .big-text, body.dark-mode .small-text {
+            color: #fff;
+        }
+
+        body.dark-mode .colour {
+            color: #000;
+        }
+
+        .small-text {
+            font-family: 'Segoe UI', Helvetica, sans-serif;
+            font-size: 12pt;
+            font-weight: 400;
+        }
+
+        body, #header-box img, #spanner {
+            transition-duration: 0.2s; /* Smooth dark mode transition */
+        }
+
+        /* HEADER */
+
+        header {
+            position: relative;
+            width: 100%;
+            height: 90px;
+            text-align: center;
+        }
+
+        header #header-box {
+            display: flex;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: calc(100% - 40px);
+            height: 50px;
+        }
+
+        header #header-box #header-title {
+            display: inline;
+            text-align: center;
+            vertical-align: bottom;
+            height: 50px;
+            margin: 0 auto;
+            margin-top: 0px;
+            border: none;
+            background-color: transparent;
+            cursor: pointer;
+        }
+
+        #header-box #header-menu {
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+        }
+
+        #header-box img {
+            width: 30px;
+            height: 30px;
+            margin: 10px;
+        }
+
+        body.dark-mode #header-box img {
+            filter: invert(100%);
+        }
+
+        #header-box #header-set {
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+        }
+
+        #header-box #spanner {
+            width: 25px;
+            height: 25px;
+            margin: 12.5px;
+            clip-path: polygon(0 100%,13% 100%,53% 60%,80% 60%,100% 40%,100% 20%,77% 43%,
+            57% 43%,57% 23%,80% 0,60% 0,40% 20%,40% 47%,0 87%); /* Spanner */
+        }
+
+        body.dark-mode #spanner {
+            background-color: #fff;
+        }
+
+        body.light-mode #spanner {
+            background-color: #000;
+        }
+
+        @media only screen and (max-width: 370px) {
+            #header-box #header-menu {
+                display: none;
+            }
+
+            #header-box #header-title {
+                font-size: 30px;
+            }
+        }
+
+        /* MAIN: GRID */
+
+        main {
+            width: 100%;
+            height: fit-content;
+        }
+
+        div#grid-container {
+            display: none;
+            width: fit-content;
+            height: fit-content;
+            margin: auto;
+        }
+
+        div#grid {
+            display: grid; /* Css Grid */
+            width: 90vw;
+            height: 90vw;
+            max-width: 414px;
+            max-height: 414px;
+            grid-template-columns: 1; /* Js controlled */
+            grid-template-rows: 1; /* Js controlled */
+            row-gap: 2px;
+            column-gap: 2px;
+        }
+
+        div#grid.view {
+            pointer-events: none;
+        }
+
+        div#grid-bar {
+            cursor: default;
+            color: #777;
+        }
+
+        @keyframes square-load {
+            0% {
+                opacity: 0;
+            } 100% {
+                opacity: 1;
+            }
+        }
+
+        .square {
+            opacity: 0; /* At start of animation */
+            position: relative;
+            padding: 0;
+            animation-name: square-load; /* Animation */
+            animation-duration: 0.5s;
+            animation-fill-mode: forwards;
+            border-radius: 2px;
+        }
+
+        .blank.square, .knighted.square {
+            background-color: #fff;
+            cursor: pointer;
+            border: 2px solid #ddd;
+        }
+
+        .blank.square:hover, .knighted.square:hover, .hint.square:hover {
+            border: 2px solid #97bc62;
+        }
+
+        .blank.square:active, .knighted.square:active, .hint.square:hover {
+            border: 2px solid #97bc62;
+        }
+
+        .knighted.square .sq-dot {
+            width: 10%;
+            height: 10%;
+            margin: 45%;
+            border-radius: 100%;
+            background-color: #000;
+        }
+
+        .filled.square {
+            background-color: #000;
+        }
+
+        body.dark-mode .filled.square {
+            border: 2px solid #555;
+        }
+
+        .knight.square {
+            background-image: url("images/kn-image-4.png");
+            background-size: 100%;
+        }
+
+        .end.square {
+            cursor: pointer;
+            background-image: url("images/fin-image.jpg");
+            background-size: 100%;
+        }
+
+        .hint.square {
+            border: 2px dashed #97bc62;
+            background-color: #fff;
+            cursor: pointer;
+        }
+
+        .green.square {
+            background-color: #97bc62;
+        }
+
+        .amber.square {
+            background-color: #ffd700;
+        }
+
+        .red.square {
+            background-color: #f03a46;
+        }
+
+        .square p {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            size: 0;
+            transform: translate(-50%, -50%);
+            margin: 0;
+            font-size: 17pt;
+            font-weight: 3px;
+            font-family: 'Segoe UI', Helvetica, sans-serif;
+        }
+
+        .square .red-cross {
+            margin: 30%;
+            width: 40%;
+            height: 40%;
+            background-color: #000;
+            clip-path: polygon(0% 0%,0% 10%,40% 50%,0% 90%,0% 100%,10% 100%,50% 60%,90% 100%,
+            100% 100%,100% 90%,60% 50%,100% 10%,100% 0%,90% 0%,50% 40%,10% 0%,0% 0%); /* X */
+        }
+
+        @keyframes knight {
+            0% {
+                width: 0;
+                height: 0;
+                margin: 50%;
+            } 100% {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+            }
+        }
+
+        /* MAIN: REVIEW */
+
+        #view-container {
+            display: none;
+            max-width: 210px;
+            margin: auto;
+            width: 90vw;
+        }
+
+        #view-container .box {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+        }
+
+        #red {
+            background-color: #f03a46;
+        }
+
+        #amber {
+            background-color: #ffd700;
+        }
+
+        #green {
+            background-color: #97bc62;
+        }
+
+        /* MAIN: MENU */
+
+        .menu {
+            width: calc(100% - 40px);
+            max-width: 300px;
+            height: fit-content;
+            margin: auto;
+            border: 2px solid #ddd;
+            border-radius: 2px;
+            padding: 10px;
+            animation-name: menu-load;
+            animation-duration: 1s;
+            pointer-events: painted;
+        }
+
+        .menu>*:not(:first-child) {
+            margin: 10px 0 0;
+        }
+
+        .menu h2 {
+            margin: 0;
+            font-size: 18pt !important;
+        }
+
+        .menu .button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 50px;
+            border-radius: 2px;
+            cursor: pointer;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .menu .a.button {
+            background-color: #97bc62;
+        }
+
+        .menu .b.button {
+            background-color: #f03a46;
+        }
+
+        .menu .ss-container {
+            display: flex;
+            width: 100%;
+            column-gap: 10px;
+        }
+
+        .menu .ss-container .menu-pane {
+            text-align: center;
+            border-radius: 2px;
+            background-color: #ffd700;
+            width: 25%;
+            font-weight: bold;
+        }
+
+        .menu .ss-container .menu-pane small {
+            display: block;
+            width: 100%;
+            font-size: 10pt;
+            font-weight: 400;
+        }
+
+        .menu label {
+            cursor: pointer;
+            display: block;
+        }
+
+        .menu label div {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background-color: #f03a46;
+        }
+
+        .menu label div input {
+            display: none;
+            width: 20px;
+            height: 20px;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .menu label div:has(input:checked) {
+            background-color: #97bc62;
+        }
+
+        .menu label div .ticker {
+            position: relative;
+            top: 0;
+            left: 0;
+            background-color: #000;
+            opacity: 0;
+        }
+
+        .menu label div:has(input:checked) .ticker {
+            clip-path: polygon(20% 40%,40% 60%,80% 20%,80% 40%,40% 80%,20% 60%);
+            opacity: 1;
+        }
+
+        #feed, #stat, #set {
+            display: none;
+        }
+
+        #info {
+            display: block;
+        }
+
+        /* ROTATE MESSAGE */
+
+        .not-fit {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #97bc62;
+        }
+
+        body.dark-mode .not-fit {
+            background-color: #000;
+        }
+
+        .not-fit-img {
+            display: block;
+            width: 50px;
+            height: 86px;
+            margin: auto;
+            border-top: 6px solid #000;
+            border-bottom: 6px solid #000;
+            border-left: 2px solid #000;
+            border-right: 2px solid #000;
+            border-radius: 2px;
+        }
+
+        body.dark-mode .not-fit-img {
+            border-color: #fff;
+        }
+
+        .not-fit-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100px;
+            height: 100px;
+            transform: translate(-50%, -50%);
+            background-color: transparent;
+            text-align: center;
+        }
+
+        @media screen and (max-width: 750px) { /* Mobile */
+            @media screen and (min-aspect-ratio: 1.2) { /* Landscape */
+                #not-fit-height {
+                    display: block; /* Make it portrait!!! */
+                }
+            }
+        }
+
+        /*.*/
+    </style>
+</head>
+<body id="body" class="light-mode hints" onclick="keypress=undefined;">
+    <header id="header">
+        <div id="header-box">
+            <div id="header-menu" title="Menu" onclick="feed()">
+                <img src="/images/kn-image-2.png">
+            </div>
+            <button id="header-title" class="non-clickable big-text" title="Menu" onclick="feed()">Knight Puzzle</button>
+            <div id="header-set" title="Settings" onclick="set()">
+                <div id="spanner"></div>
+            </div>
+        </div>
+    </header>
+
+    <main id="main">
+        <div id="grid-container">
+            <div id="grid" class="play">
+                <!--[script.js]-->
+            </div>
+            <div id="grid-bar" class="small-text">
+                <!--[script.js]-->
+            </div>
+        </div>
+
+        <div id="view-container" class="small-text">
+            <div id="green" class="box"></div> Correct squares <br>
+            <div id="amber" class="box"></div> Duplicated squares<br>
+            <div id="red" class="box"></div> Incorrect squares <br>
+        </div>
+
+        <div id="info" class="menu small-text">
+            <h2 class="big-text">How to Play</h2>
+            <p>Charge the knight piece across the board to the finish square by moving like a chess knight.</p>
+            <p>You can only jump onto white squares.</p>
+            <p>There is a new puzzle every day. It takes at least <strong id="puzz-length"></strong> moves to finish today's puzzle.</p>
+            <p>There is only one unique solution!</p>
+            <p>Puzzle no. <strong id="puzz-date"></strong></p>
+            <div class="button a small-text colour" onclick="play()">Play</div>
+        </div>
+
+        <div id="feed" class="menu small-text">
+            <!--[script.js]-->
+        </div>
+
+        <div id="stat" class="menu small-text">
+            <!--[script.js]-->
+        </div>
+
+        <div id="set" class="menu small-text">
+            <h2 class="big-text">Settings</h2>
+            <label onclick="storeSettings();">
+                <div>
+                    <div class="ticker"></div>
+                    <input id="dark-mode" type="checkbox">
+                </div> Dark Mode
+            </label>
+            <label onclick="storeSettings();">
+                <div>
+                    <div class="ticker"></div>
+                    <input id="hints" type="checkbox">
+                </div> Hints
+            </label>
+            <label onclick="storeSettings();">
+                <div>
+                    <div class="ticker"></div>
+                    <input id="keyboard-input" type="checkbox">
+                </div> Keyboard Input
+            </label>
+            <div class="button a small-text colour" onclick="feed()">OK</div>
+            <div class="button a small-text colour" onclick="stat()">See my Stats</div>
+        </div>
+    </main>
+
+    <div id="not-fit-height" class="not-fit">
+        <div class="not-fit-message small-text">
+            <img class="not-fit-img" src="/images/kn-image-4.png">
+            Rotate to portrait mode
+        </div>
+    </div>
+    <script type="text/javascript">
+        console.log("Knight Puzzle, by Miles Plowman");
+        var d = document;
+        
+        function gE(id) {return d.getElementById(id)} // getElementById for short
+
+        function dD(n) { // Converts number to two-digit string
+            var nn = (typeof n === "string") ? n : String(n);
+            if (nn.length < 2) {
+                nn = "0".repeat(2-nn.length) + nn;
+            }
+            return nn;
+        }
+
+        function r(max) { // Pseudorandom generator - output changes every day 
+            // x -> 4*x*(1-x)
+            let random = 4*last*(1-last);
+            ans = Math.floor(random*max);
+            last = random;
+            return ans;
+        }
+
+        function inc(e, l) {
+            return l.some((li) => e[0] == li[0] && e[1] == li[1]);
+        }
+
+        // LOCALSTORAGE
+
+        function getGP() {
+            return JSON.parse(localStorage.getItem("kpu-progress"));
+        }
+
+        function setGP(obj) {
+            localStorage.setItem("kpu-progress", JSON.stringify(obj));
+        }
+
+        function getSS() {
+            return JSON.parse(localStorage.getItem("kpu-stats"));
+        }
+
+        function setSS(obj) {
+            localStorage.setItem("kpu-stats", JSON.stringify(obj));
+        }
+
+        function getS() {
+            return JSON.parse(localStorage.getItem("kpu-settings"));
+        }
+
+        function setS(obj) {
+            localStorage.setItem("kpu-settings", JSON.stringify(obj));
+        }
+
+        function moves() {
+            return getGP().moves;
+        }
+
+        function getStreakStatus() {
+            let t = getSS();
+            if (t.streakdate == date) {
+                return 1; // Nothing happens
+            } else if (t.streakdate+1 == date) {
+                return 2; // Streak goes up
+            } else if (t.streakdate+1 < date) {
+                return 0; // Streak resets
+            } else {
+                return 1;
+            }
+        }
+
+        //// MENU
+
+        function updateFeed() {
+            // Feedback while playing puzzle
+            let s = getGP();
+            let movesMade = moves();
+            let optimalMoves = solution.length-1;
+            let finished = getGP().fin === true;
+            if (movesMade <= 0 && !finished) {
+                info(); // At start show instructions
+            }
+            let movesFeedback = (movesMade == optimalMoves) 
+                ?   "You completed today's puzzle in the optimal number of moves."
+                :   "You completed today's puzzle in "+movesMade+" moves. "+
+                    "You could have done it in "+optimalMoves+".";
+            let title = finished
+                ?   "Congrats!" 
+                :   "Keep it up";
+            let p = finished 
+                ?   movesFeedback
+                :   "You've made "+movesMade+" move"+(movesMade==1?"":"s")+" so far";
+            gE("feed").innerHTML = 
+            "<h2 class='big-text'>"+title+"</h2>"+
+            "<p>"+p+"</p>";
+
+            gE("feed").innerHTML +=
+            finished
+                ?   "<div class='button a small-text colour' onclick='view()'>How did I do?</div>"+
+                    "<div class='button a small-text colour' onclick='stat()'>See my stats</div>"
+                :   "<div class='button a small-text colour' onclick='play()'>Keep Going</div>"+
+                    "<div class='button a small-text colour' onclick='info()'>How to Play</div>";
+        }
+
+        function updateStats() {
+            let a = getSS();
+            gE("stat").innerHTML =
+                "<h2 class='big-text'>Your Stats</h2>"+
+                "<div class='ss-container colour' onclick='stat()'>"+
+                    "<div class='menu-pane' id='streak'>"+a.streak+
+                        "<small>Current Streak</small>"+
+                    "</div>"+
+                    "<div class='menu-pane' id='max-streak'>"+a.maxstreak+
+                        "<small>Max Streak</small>"+
+                    "</div>"+
+                    "<div class='menu-pane' id='perfect-games'>"+a.perfectgames+
+                        "<small>Perfect Games</small>"+
+                    "</div>"+
+                    "<div class='menu-pane' id='total-games'>"+a.totalgames+
+                        "<small>Total Games</small>"+
+                    "</div>"+
+                "</div>"+
+                "<p>Play every day to grow your streak!</p>"+
+                "<div class='button a small-text colour' onclick='feed()'>OK</div>"
+        }
+
+        function updateReview() {
+            let s = getGP();
+            clearPath();
+            for (let i=1; i<s.track.length; i++) {
+                let sq = s.track[i];
+                setSq(sq[0], sq[1], "green", i);
+                // Set track as green squares (numbered i)
+            }
+            for (let i=0; i<s.unmoves.length; i++) {
+                let sq = s.unmoves[i];
+                setSq(sq[0], sq[1], "amber");
+                // Amber squares overwrite green ones
+            }
+            for (sq of s.wrmoves) {
+                setSq(sq[0], sq[1], "red");
+            }
+            setSq(startX, startY, "knight");
+        }
+
+        function storeSettings() {
+            let s = getS();
+            s.darkmode = gE("dark-mode").checked;
+            s.hints = gE("hints").checked;
+            s.keyboardinput = gE("keyboard-input").checked;
+            setS(s);
+            updateSettings();
+        }
+
+        function updateSettings() {
+            let s = getS();
+            let classname = "";
+            if (s.darkmode) {
+                classname += "dark-mode "; // Extra space important
+                gE("dark-mode").checked = true;
+            } else {
+                classname += "light-mode ";
+                gE("dark-mode").checked = false;
+            }
+            if (s.hints) {
+                gE("hints").checked = true;
+            } else {
+                gE("hints").checked = false;
+            }
+            if (s.keyboardinput) {
+                gE("keyboard-input").checked = true;
+            } else {
+                gE("keyboard-input").checked = false;
+            }
+            d.body.className = classname;
+            setS(s);
+        }
+
+        function play() {
+            // Play (hide menus)
+            gE("grid").className = "play";
+            gE("info").style.display = "none";
+            gE("feed").style.display = "none";
+            gE("stat").style.display = "none";
+            gE("set").style.display = "none";
+            gE("grid-container").style.display = "block";
+            gE("view-container").style.display = "none";
+        }
+
+        function info() {
+            // Instructions
+            gE("info").style.display = "block";
+            gE("feed").style.display = "none";
+            gE("stat").style.display = "none";
+            gE("set").style.display = "none";
+            gE("grid-container").style.display = "none";
+            gE("view-container").style.display = "none";
+        }
+
+        function feed() {
+            // Feedback while playing puzzle
+            gE("info").style.display = "none";
+            gE("feed").style.display = "block";
+            gE("stat").style.display = "none";
+            gE("set").style.display = "none";
+            gE("grid-container").style.display = "none";
+            gE("view-container").style.display = "none";
+            updateFeed();
+        }
+
+        function stat() {
+            gE("grid").className = "view"; // View-only grid
+            gE("info").style.display = "none";
+            gE("feed").style.display = "none";
+            gE("stat").style.display = "block";
+            gE("set").style.display = "none";
+            gE("grid-container").style.display = "none";
+            gE("view-container").style.display = "none";
+            updateStats();
+        }
+
+        function set() {
+            gE("info").style.display = "none";
+            gE("feed").style.display = "none";
+            gE("stat").style.display = "none";
+            gE("set").style.display = "block";
+            gE("grid-container").style.display = "none";
+            gE("view-container").style.display = "none";
+        }
+
+        function view() {
+            gE("grid").className = "view"; // View-only grid
+            gE("info").style.display = "none";
+            gE("feed").style.display = "none";
+            gE("stat").style.display = "none";
+            gE("grid-container").style.display = "block";
+            gE("view-container").style.display = "block";
+            updateReview();
+        }
+
+        function finish() {
+            console.log("FINISH");
+            let s = getGP();
+            s.fin = true;
+            setGP(s);
+            let t = getSS();
+            if (getStreakStatus() == 2) {t.streak++;}
+            t.streakdate = date;
+            t.totalgames++;
+            if (s.unmoves.length == 0 && s.wrmoves.length == 0) {t.perfectgames++;}
+            if (t.maxstreak<t.streak) {t.maxstreak = t.streak;}
+            setSS(t);
+            feed();
+        }
+
+        // KNIGHT MOVE AND BOARD FUNCTIONS
+
+        function getPosList(x, y) {
+            return [
+                [x+1,y-2],
+                [x+2,y-1],
+                [x+2,y+1],
+                [x+1,y+2],
+                [x-1,y+2],
+                [x-2,y+1],
+                [x-2,y-1],
+                [x-1,y-2]
+            ]; // Defines all valid chess knight moves as coords
+        } // You can change me to move like another piece...
+
+        function onBoard(x, y, width) {
+            return (width !== undefined) ? x >= 0 && y >= 0 && x < width && y < width : false;
+        }
+
+        function getSq(x, y) {
+            var posId = "sq"+dD(x)+dD(y);
+            var elem = gE(posId);
+            return elem.classList[0];
+        }
+
+        function setSq(x, y, s, i) {
+            var posId = "sq"+dD(x)+dD(y);
+            var elem = gE(posId);
+            i ??= 0;
+
+            if (s === "blank") { // Empty
+                elem.className = "blank square";
+                elem.innerHTML = "";
+                elem.onclick = function() {squareClick(posId)};
+            } else if (s === "filled") { // Filled
+                elem.className = "filled square";
+                elem.innerHTML = "";
+                elem.onclick = undefined; // Filled squares unclickable
+            } else if (s === "end") {
+                elem.className = "end square";
+                elem.innerHTML = "";
+                elem.onclick = function() {squareClick(posId)};
+            } else if (s === "knight") {
+                elem.className = "knight square";
+                elem.innerHTML = "";
+                elem.onclick = undefined;
+            } else if (s === "knighted") {
+                elem.className = "knighted square";
+                elem.innerHTML = "<div class='sq-dot'></div>";
+                elem.onclick = function() {squareClick(posId)};
+            } else if (s === "green") {
+                elem.className = "green square";
+                elem.innerHTML = "<p>"+i+"</p>";
+            } else if (s === "amber") {
+                elem.className = "amber square";
+            } else if (s === "red") {
+                elem.className = "red square";
+                elem.innerHTML = "<div class='red-cross'></div>"
+            } else if (s === "hint") {
+                elem.className = "hint square";
+                elem.innerHTML = "<p>Hint!</p>";
+                elem.onclick = function() {squareClick(posId)};
+            }
+        }
+
+        //// PUZZLE INITIALISATION
+
+        function initStorage() {
+            // LOCALSTORAGE
+            let p = getS();
+            if (p == null) { // LS null
+                setS({
+                    darkmode: false,
+                    hints: true,
+                    keyboardinput: true,
+                });
+            }
+            updateSettings(); // Read LS and implement settings
+            let t = getSS();
+            if (t == null) { // LS null
+                setSS({ // streak
+                    streak: 0,
+                    maxstreak: 0,
+                    streakdate: date-1,
+                    perfectgames: 0,
+                    totalgames: 0,
+                });
+            }
+            if (getStreakStatus() == 0) {
+                t.streak = 0; setSS(t);
+            }
+            let s = getGP();
+            if (s == null || s.date != date) { // LS null or new date
+                setGP({ // progress
+                    x: startX,
+                    y: startY,
+                    track: [[startX, startY]],
+                    unmoves: [],
+                    wrmoves: [],
+                    moves: 0,
+                    hint: 0,
+                    fin: false,
+                    date: date,
+                });
+            }
+        }
+
+        function route(x, y, moves) {
+            setSq(x, y, "blank");
+            solution.push([x, y]);
+            
+            let pmoves = getPosList(x, y); // Possible moves are labelled "coord" each when filtering them
+            pmoves=pmoves.filter((coord)=> onBoard(coord[0], coord[1], width) ); // Only onBoard moves
+            pmoves=pmoves.filter((coord)=> getSq(coord[0], coord[1])==="filled" ); // No return moves
+            pmoves=pmoves.filter((coord)=> !(coord[0]===startX&&coord[1]===startY) ); // No return to start
+            pmoves=pmoves.filter(function(coord) { // Also filter moves which go back in a loop, so:
+                let newx = coord[0]; let newy = coord[1]; // Move once in every possible direction defined before
+                let newpmoves = getPosList(newx, newy); // Same procedures again with a second move "newcoord"
+                newpmoves = newpmoves.filter((newcoord) => onBoard(newcoord[0], newcoord[1], width)); // Again
+                // This time, make sure there is only one changed square around (x, y) - the original square
+                return newpmoves.filter((c) => getSq(c[0],c[1]) !== "filled").length <= 1; // Return result
+                // Returning false filters out this move from pmoves, true keeps it in
+            })
+            if (moves == 0) {
+                setSq(x, y, "end");
+                return "success";
+            }
+            while (true) {
+                if (pmoves.length == 0) {
+                    setSq(x, y, "filled");
+                    solution.pop();
+                    return "failed";
+                }
+                let d = r(pmoves.length);
+                let result = route(pmoves[d][0], pmoves[d][1], moves-1); // Call recursively
+                if (result == "failed") {
+                    pmoves = pmoves.slice(d);
+                } else if (result == "success") {
+                    return "success";
+                }
+            }
+        }
+
+        function setSolution() {
+            let x = startX;
+            let y = startY;
+            route(x, y, 10);
+        }
+
+        function setAstrayMoves() {
+            for (let y=0; y<width; y++) {
+                for (let x=0; x<width; x++) {
+                    if (getSq(x, y) == "filled") { // For each blank square in the grid
+                        pmoves = getPosList(x, y); // Find squares one knight move away
+                        pmoves = pmoves.filter((coord)=> onBoard(coord[0], coord[1], width) ); // Only onBoard moves
+                        if (pmoves.filter((coord) => getSq(coord[0], coord[1]) !== "filled").length == 1) {
+                            // If there is ONE other changed square a knight move away (plus random element):
+                            setSq(x, y, "blank"); // Set the original square blank
+                        }
+                    }
+                }
+            }
+            for (let y=0; y<width; y++) {
+                for (let x=0; x<width; x++) {
+                    if (getSq(x, y) == "filled") { // For each blank square in the grid
+                        pmoves = getPosList(x, y); // Find squares one knight move away
+                        pmoves = pmoves.filter((coord)=> onBoard(coord[0], coord[1], width) ); // Only onBoard moves
+                        if (pmoves.filter((coord) => getSq(coord[0], coord[1]) !== "filled").length == 0) {
+                            // If there are ZERO other changed squares a knight move away (plus random element):
+                            setSq(x, y, "blank"); // Set the original square blank
+                        }
+                    }
+                }
+            }
+        }
+
+        function generate() {
+            // SETS THE SQUARES TO A SOLVABLE PUZZLE (uses above functions)
+            setSq(startX, startY, "knight");
+            setSolution(); // Set the knight path of blank squares to the finish
+            setAstrayMoves(); // Make other squares blank to confuse the puzzler (keeping only one solution)
+            document.getElementById("puzz-length").innerHTML = solution.length-1;
+            document.getElementById("puzz-date").innerHTML = date-19965;
+        }
+
+        function clearPath() {
+            for (let y=0; y<width; y++) {
+                for (let x=0; x<width; x++) {
+                    let s = getSq(x,y)
+                    if (s === "knight" || s === "knighted") {
+                        setSq(x, y, "blank");
+                    }
+                }
+            }
+        }
+
+        function updateHint() {
+            let s = getGP();
+            if (s.hint >= 4 && getS().hints) {
+                for (coord of solution) {
+                    if (getSq(coord[0], coord[1]) == "blank") {
+                        setSq(coord[0], coord[1], "hint");
+                        break;
+                    }
+                }
+                s.hint = 0;
+                setGP(s);
+            }
+        }
+
+        function updatePath() {
+            // Make blank again all knight and knighted squares
+            clearPath();
+            let s = getGP();
+            for (let i=0; i<s.track.length; i++) {
+                let coord = getGP().track[i];
+                let x = coord[0];
+                let y = coord[1];
+                if (i == s.track.length-1) {
+                    setSq(x, y, "knight");
+                } else {
+                    setSq(x, y, "knighted");
+                } // Go through local storage and set knight and knighted squares
+            }
+            updateHint()
+        }
+
+        function updateBar() {
+            let puzzLength = solution.length - 1;
+            let moved = moves();
+            gE("grid-bar").innerHTML = 
+            "<p style='display: inline-block; margin: 0; width: 50%; text-align: left;'>"+
+                moved+" move"+(moved==1?"":"s")+
+            "</p>"+
+            "<p style='display: inline-block; margin: 0; width: 50%; text-align: right;'>"+
+                (puzzLength < 10 ? "Easy" : puzzLength < 20 ? "Medium" : "Hard")+
+            "</p>";
+        }
+
+        function initBoard() {
+            // PUZZLE
+            gE("grid").innerHTML = "";
+            let i;
+            let j;
+            let posNum;
+            for (let c=0; c<(width*width); c++) {
+                j = c%width // x is remainder
+                i = Math.floor(c/width) // y is quotient
+                posNum = dD(j)+dD(i);
+                gE("grid").innerHTML += "<div class='filled square' "+
+                    "id='sq"+posNum+"' "+
+                    "onclick='squareClick(\"sq"+posNum+"\")' "+
+                    "style='animation-delay: "+((i*2+j)*20)+"ms'></div>";
+                // All squares filled
+            }
+        }
+
+        function init() {
+            console.log("GENERATE");
+            initBoard();
+            generate();
+            initStorage(); // LocalStorage handling
+            updatePath(); // Update board and player progress
+            updateBar(); // Update detail below grid
+            feed(); // Show the #feed or #info menu depending on player progress
+            console.log("PLAY");
+        }
+
+        //// CALLED BY ONCLICK (updating functions)
+
+        // Updates the knight position
+        function moveKnight(x, y) {
+            // Before anything, check that it's a valid knight move
+            let knightX = getGP().x;
+            let knightY = getGP().y;
+            let posList = getPosList(knightX, knightY);
+            // Get list of valid coords
+            let isValid = posList.some(pos => pos[0] === x && pos[1] === y) && onBoard(x, y, width);
+            // If any of the coords match the clicked ones it's valid
+            if (!isValid) {return;} // If a valid knight move
+
+            let newSq = gE("sq"+dD(x)+dD(y));
+            let s = getGP();
+            let tofinish = false;
+            if (newSq.className === "blank square" || 
+                newSq.className === "hint square") { // New, unknighted square
+                s.track.push([x, y]);
+                s.moves++;
+                if (!inc([x, y], solution)) {
+                    if (!inc([x, y], s.wrmoves)) { // No duplicate items in wrmoves
+                        s.wrmoves.push([x, y]); // Add to 'wrmoves' in localStorage
+                    }
+                    s.hint++;
+                }
+                s.x = x; s.y = y; // UPDATE KNIGHT
+            }
+            else if (newSq.className === "knighted square") { // Knighted square (moving back)
+                s.track.pop();
+                s.moves++;
+                if (inc([x, y], solution)) {
+                    if (!inc([x, y], s.unmoves)) { // No duplicate items in unmoves
+                        s.unmoves.push([x, y]); // Add to 'unmoves' in localStorage if move back along solution
+                    }
+                    s.hint++;
+                }
+                s.x = x; s.y = y; // UPDATE KNIGHT
+            }
+            else if (newSq.className === "end square") { // End square finishes
+                s.moves++;
+                tofinish = true;
+            }
+            setGP(s);
+            if (tofinish) {
+                finish();
+            }
+            updatePath();
+            updateBar();
+        }
+
+        // Calls moveKnight when .square clicked (onclick)
+        function squareClick(posId) {
+            posNum = String(posId).replace("sq","");
+            console.log("sq"+posNum);
+            let x = Number(posNum[0]+posNum[1]);
+            let y = Number(posNum[2]+posNum[3]);
+            moveKnight(x, y); // Update knight position
+        }
+
+        //// EVERYTHING STARTS HERE
+
+        const realDate = new Date();
+        const date = Math.floor(realDate.getTime()/86400000) // Days since 01.01.1970
+        var last = 4*(date/29.2722%1)*(1-(date/29.2722%1)); // Different daily random starting number
+
+        const width = 8; // You can change me! Do not set to 3 (middle square glitch)
+        gE("grid").style.gridTemplateColumns = "repeat("+width+", 1fr)";
+        gE("grid").style.gridTemplateRows = "repeat("+width+", 1fr)";
+
+        var startX = r(width);
+        var startY = r(width);
+        var solution = []; // Solution list
+        var keypress;
+        // Uses localStorage to store attempt
+
+        init(); // Go
+
+        //// KEYBOARD
+
+        d.addEventListener("keyup", (_) => {
+            let pressedKey = String(_.key);
+            let move;
+            if (pressedKey === "ArrowUp") {
+                if (keypress == 1) {
+                    move = 1;
+                } else if (keypress == 2) {
+                    keypress = undefined;
+                } else if (keypress == 3) {
+                    move = 6;
+                } else {
+                    keypress = 0;
+                }
+            } else if (pressedKey === "ArrowRight") {
+                if (keypress == 0) {
+                    move = 0;
+                } else if (keypress == 3) {
+                    keypress = undefined;
+                } else if (keypress == 2) {
+                    move = 3;
+                } else {
+                    keypress = 1;
+                }
+            } else if (pressedKey === "ArrowDown") {
+                if (keypress == 1) {
+                    move = 2;
+                } else if (keypress == 0) {
+                    keypress = undefined;
+                } else if (keypress == 3) {
+                    move = 5;
+                } else {
+                    keypress = 2;
+                }
+            } else if (pressedKey === "ArrowLeft") {
+                if (keypress == 0) {
+                    move = 7;
+                } else if (keypress == 1) {
+                    keypress = undefined;
+                } else if (keypress == 2) {
+                    move = 4;
+                } else {
+                    keypress = 3;
+                }
+            } else {
+                keypress = undefined;
+            }
+            if (move !== undefined && getS().keyboardinput == true) {
+                keypress = undefined;
+                let s = getGP();
+                let coord = getPosList(s.x, s.y)[move];
+                moveKnight(coord[0], coord[1]);
+            }
+        });
+
+        //.
+    </script>
+    <noscript>Sorry, your browser doesn't support JavaScript.</noscript>
+</body>
+
+</html>
+<!--.-->
